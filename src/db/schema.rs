@@ -20,7 +20,4 @@ diesel::table! {
 
 diesel::joinable!(ports -> mac_addresses (mac_id));
 
-diesel::allow_tables_to_appear_in_same_query!(
-    mac_addresses,
-    ports,
-);
+diesel::allow_tables_to_appear_in_same_query!(mac_addresses, ports,);

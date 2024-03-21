@@ -19,7 +19,7 @@ pub struct Register {
 impl Register {
     pub fn get_ports(&mut self, used_ports: Vec<u32>) {
         let mut used_ports = used_ports;
-        for port in self.ports.0.iter_mut(){
+        for port in self.ports.0.iter_mut() {
             let mut find_next_port = START_PORT;
             while used_ports.contains(&find_next_port) {
                 find_next_port += 1;
@@ -31,7 +31,7 @@ impl Register {
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]
-pub struct Ports (pub Vec<Port>);
+pub struct Ports(pub Vec<Port>);
 
 impl Ports {
     pub fn get_ports(&self) -> Vec<u32> {
@@ -43,8 +43,6 @@ impl Ports {
     }
 }
 
-
-
 #[derive(serde::Serialize)]
 struct ResponseRegister {
     pub ports: Vec<u32>,
@@ -53,7 +51,7 @@ struct ResponseRegister {
 #[derive(serde::Deserialize, Debug, Clone)]
 pub enum Protocol {
     Tcp,
-    Http
+    Http,
 }
 
 impl Display for Protocol {

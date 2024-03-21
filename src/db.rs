@@ -1,8 +1,12 @@
 pub mod models;
 pub mod schema;
 
-use actix_web::{web};
-use diesel::{r2d2::{self, ConnectionManager}, result::Error, ExpressionMethods, QueryDsl, RunQueryDsl, SqliteConnection};
+use actix_web::web;
+use diesel::{
+    r2d2::{self, ConnectionManager},
+    result::Error,
+    ExpressionMethods, QueryDsl, RunQueryDsl, SqliteConnection,
+};
 
 use crate::port::Port;
 
@@ -11,8 +15,11 @@ pub type Pool = r2d2::Pool<ConnectionManager<DatabaseConnection>>;
 
 pub fn get_used_ports(pool: web::Data<Pool>) -> Result<Vec<u32>, Error> {
     let mut conn = pool.get().unwrap();
-    let ports_from_db = schema::ports::table.select(schema::ports::port).load::<i32>(&mut conn).unwrap();
-    // let ports_form_server: 
+    let ports_from_db = schema::ports::table
+        .select(schema::ports::port)
+        .load::<i32>(&mut conn)
+        .unwrap();
+    // let ports_form_server:
     Ok(ports_from_db.into_iter().map(|x| x as u32).collect())
 }
 
@@ -31,7 +38,11 @@ pub fn get_ports_by_mac(pool: web::Data<Pool>, address_mac: String) -> Result<Ve
     Ok(result.into_iter().map(|x| x as u32).collect())
 }
 
-pub fn insert_mac_address(pool: web::Data<Pool>, address_mac: String, ssh_key: String) -> Result<(), Error> {
+pub fn insert_mac_address(
+    pool: web::Data<Pool>,
+    address_mac: String,
+    ssh_key: String,
+) -> Result<(), Error> {
     let mut conn = pool.get().unwrap();
     let new_mac = models::Mac_addresses {
         address_mac,
@@ -43,7 +54,11 @@ pub fn insert_mac_address(pool: web::Data<Pool>, address_mac: String, ssh_key: S
         .map(|_| ())
 }
 
-pub fn insert_ports(pool: web::Data<Pool>, address_mac: String, ports: &Vec<Port>) -> Result<(), Error> {
+pub fn insert_ports(
+    pool: web::Data<Pool>,
+    address_mac: String,
+    ports: &Vec<Port>,
+) -> Result<(), Error> {
     let mut conn = pool.get().unwrap();
     let mac_id = schema::mac_addresses::table
         .filter(schema::mac_addresses::address_mac.eq(&address_mac))

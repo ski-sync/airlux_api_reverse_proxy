@@ -2,14 +2,17 @@
 extern crate diesel;
 
 pub mod db;
-pub mod routes;
 pub mod port;
+pub mod routes;
 
+use actix_web::{
+    web::{self},
+    App, HttpServer,
+};
+use core::fmt;
 use db::{DatabaseConnection, Pool};
 use diesel::r2d2::ConnectionManager;
-use core::fmt;
 use std::{fmt::Display, fs};
-use actix_web::{web::{self}, App, HttpServer};
 
 /// Helps with changing the database engine without much edits.
 
@@ -20,13 +23,13 @@ use actix_web::{web::{self}, App, HttpServer};
 //     used_ports
 // }
 
-fn merge_ports(ports: Vec<u32>, used_ports: Vec<u32>) -> Vec<u32> {
-    let mut merged_ports = used_ports;
-    for port in ports {
-        merged_ports.push(port);
-    }
-    merged_ports
-}
+// fn merge_ports(ports: Vec<u32>, used_ports: Vec<u32>) -> Vec<u32> {
+//     let mut merged_ports = used_ports;
+//     for port in ports {
+//         merged_ports.push(port);
+//     }
+//     merged_ports
+// }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -37,8 +40,7 @@ async fn main() -> std::io::Result<()> {
         .build(ConnectionManager::<DatabaseConnection>::new(database_url))
         .unwrap();
 
-
-    HttpServer::new(move ||{
+    HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(database_pool.clone()))
             .service(routes::register)

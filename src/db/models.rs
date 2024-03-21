@@ -1,10 +1,5 @@
-use core::fmt;
-use std::fmt::Display;
 use super::schema::mac_addresses;
 use super::schema::ports;
-
-
-
 
 #[derive(Queryable, Insertable)]
 #[table_name = "mac_addresses"]
