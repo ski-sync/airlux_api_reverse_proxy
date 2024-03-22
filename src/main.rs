@@ -33,6 +33,7 @@ use std::{fmt::Display, fs};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    println!("Starting server at http://0.0.0.0:8081 ");
     dotenv::dotenv().ok();
 
     let database_url = std::env::var("DATABASE_URL").unwrap_or("app.db".to_string());
@@ -46,7 +47,7 @@ async fn main() -> std::io::Result<()> {
             .service(routes::register)
             .service(routes::api_get)
     })
-    .bind(("127.0.0.1", 8081))?
+    .bind(("0.0.0.0", 8081))?
     .run()
     .await
 }
