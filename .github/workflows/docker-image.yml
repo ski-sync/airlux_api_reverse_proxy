@@ -2,8 +2,9 @@ name: ci
 
 on:
   push:
-    branches:
-      - "main"
+    branches: [main, dev, feature/*]
+  pull_request:
+    branches: [main, dev, feature/*]
 
 env:
   REGISTRY_IMAGE: code0ex/api_reverse_proxy
