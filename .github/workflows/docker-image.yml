@@ -1,10 +1,10 @@
 name: ci
 
 on:
-  push:
-    branches: [$default-branch]
-  pull_request:
-    branches: [$default-branch]
+  release:
+    types: [published]
+    branches:
+      - $default-branch
 
 env:
   REGISTRY_IMAGE: code0ex/api_reverse_proxy
@@ -46,7 +46,7 @@ jobs:
           context: .
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true,tag=${{ steps.meta.outputs.version }}
       - name: Export digest
         run: |
           mkdir -p /tmp/digests
