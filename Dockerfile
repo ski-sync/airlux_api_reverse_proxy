@@ -1,4 +1,5 @@
 FROM rust:1.75.0 as base
+ARG DATABASE_URL=app.db
 WORKDIR /app
 ADD . /app
 RUN cargo install diesel_cli --no-default-features --features sqlite
