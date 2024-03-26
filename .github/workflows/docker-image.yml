@@ -4,7 +4,10 @@ on:
   release:
     types: [published]
     branches:
-      - $default-branch, feature/9-ci-target # just for testing
+      - $default-branch
+  push:
+    branches:
+      - feature/* # just for testing
 
 env:
   REGISTRY_IMAGE: code0ex/api_reverse_proxy
