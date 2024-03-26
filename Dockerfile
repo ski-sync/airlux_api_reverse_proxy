@@ -7,6 +7,7 @@ RUN diesel migration run
 RUN cargo build --release
 
 FROM debian:12.0-slim as runtime
+ARG DATABASE_URL=app.db
 WORKDIR /app
 RUN apt-get update && apt-get install -y libsqlite3-0
 COPY --from=base /app/target/release/api /app
