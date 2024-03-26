@@ -13,7 +13,7 @@ ReverseSSH-API is a lightweight RESTful API designed to simplify the process of 
 
 To get started with ReverseSSH-API, follow these steps:
 
-1. Clone the repository: `git clone
+1. Clone the repository: `git clone https://github.com/ski-sync/api_reverse_proxy.git`
 2. Run the Docker container: `docker compose up -d`
 3. Set up environment variables:
    `cp .env.example .env`
