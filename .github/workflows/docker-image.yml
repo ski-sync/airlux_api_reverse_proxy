@@ -5,9 +5,6 @@ on:
     types: [published]
     branches:
       - $default-branch
-  push:
-    branches:
-      - feature/* # just for testing
 
 env:
   REGISTRY_IMAGE: code0ex/api_reverse_proxy
@@ -20,7 +17,7 @@ jobs:
       matrix:
         platform:
           - linux/amd64
-          # - linux/arm64
+          - linux/arm64
     steps:
       - name: Prepare
         run: |
