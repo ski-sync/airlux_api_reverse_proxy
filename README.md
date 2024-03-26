@@ -19,8 +19,7 @@ To get started with ReverseSSH-API, follow these steps:
    Copy code
    Edit the `.env` file with your desired configuration.
 3. Run the Docker container: `docker compose up -d`
-4. Build and run the Docker container:
-5. Access the API at `http://localhost:8000`
+4. Access the API at `http://localhost:8000`
 
 ## API Reference
 
