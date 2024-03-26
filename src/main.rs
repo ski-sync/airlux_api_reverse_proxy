@@ -9,10 +9,8 @@ use actix_web::{
     web::{self},
     App, HttpServer,
 };
-use core::fmt;
 use db::{DatabaseConnection, Pool};
 use diesel::r2d2::ConnectionManager;
-use std::{fmt::Display, fs};
 
 /// Helps with changing the database engine without much edits.
 

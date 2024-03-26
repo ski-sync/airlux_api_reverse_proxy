@@ -2,7 +2,7 @@ use actix_web::{get, web, Error, HttpResponse};
 
 use crate::{
     db::{get_ports_by_mac, get_used_ports, insert_mac_address, insert_ports, Pool},
-    port::{Port, Register},
+    port::Register,
 };
 
 #[get("/api/register")]

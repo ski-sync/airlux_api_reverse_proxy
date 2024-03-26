@@ -44,7 +44,7 @@ pub fn insert_mac_address(
     ssh_key: String,
 ) -> Result<(), Error> {
     let mut conn = pool.get().unwrap();
-    let new_mac = models::Mac_addresses {
+    let new_mac = models::MacAddresses {
         address_mac,
         ssh_key,
     };

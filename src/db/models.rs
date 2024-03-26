@@ -3,7 +3,7 @@ use super::schema::ports;
 
 #[derive(Queryable, Insertable)]
 #[table_name = "mac_addresses"]
-pub struct Mac_addresses {
+pub struct MacAddresses {
     pub address_mac: String,
     pub ssh_key: String,
 }
