@@ -71,7 +71,7 @@ pub async fn register(
 }
 
 #[get("/api/ports")]
-pub async fn api_get(pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+pub async fn get_ports(pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
     let used_ports = match get_used_ports(pool.clone()) {
         Ok(used_ports) => used_ports,
         Err(e) => {
