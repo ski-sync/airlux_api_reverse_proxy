@@ -1,9 +1,8 @@
-
 .dockerignore
 .gitignore
 docker-compose.yml
 Dockerfile
 README.md
-test.db
+*.db
 used_ports.json
 target/
