@@ -44,6 +44,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(database_pool.clone()))
             .service(routes::register)
             .service(routes::get_ports)
+            .service(routes::get_traefik)
     })
     .bind(("0.0.0.0", 8081))?
     .run()

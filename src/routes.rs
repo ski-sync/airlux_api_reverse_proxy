@@ -81,3 +81,68 @@ pub async fn get_ports(pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
     };
     Ok(HttpResponse::Ok().json(used_ports))
 }
+
+///
+/// Traefik API
+/// this route will be used to get the traefik configuration for deferent ports atributed to the mac address
+/// he retrun a yaml file with the configuration for traefik
+///
+/// # Example
+/// ```yaml
+/// https:
+///   routers:
+///     box-1:
+///       rule: "Host(`box-1.proxy.ski-sync.com`)"
+///       service: box-1
+///       entryPoints:
+///         - secureweb
+///   services:
+///     box-1:
+///       loadBalancer:
+///         servers:
+///           - url: "http://localhost:8000"
+///   middlewares:
+///     redirect:
+///       redirectScheme:
+///         scheme: https
+/// ```
+///
+#[get("/api/traefik")]
+pub async fn get_traefik(pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    let used_ports = match get_used_ports(pool.clone()) {
+        Ok(used_ports) => used_ports,
+        Err(e) => {
+            return Ok(HttpResponse::InternalServerError()
+                .body(format!("Error getting used ports: {}", e)))
+        }
+    };
+
+    let mut traefik_config = String::from("https:\n");
+    traefik_config.push_str("  routers:\n");
+    for port in &used_ports {
+        traefik_config.push_str(&format!("    box-{}:\n", port));
+        traefik_config.push_str(&format!(
+            "      rule: \"Host(`box-{}.proxy.ski-sync.com`)\"\n",
+            port
+        ));
+        traefik_config.push_str(&format!("      service: box-{}\n", port));
+        traefik_config.push_str("      entryPoints:\n");
+        traefik_config.push_str("        - secureweb\n");
+        // cert resolver
+        traefik_config.push_str("      tls:\n");
+        traefik_config.push_str("        certResolver: myresolver\n");
+    }
+    traefik_config.push_str("  services:\n");
+    for port in &used_ports {
+        traefik_config.push_str(&format!("    box-{}:\n", port));
+        traefik_config.push_str("      loadBalancer:\n");
+        traefik_config.push_str("        servers:\n");
+        traefik_config.push_str(&format!("          - url: \"http://localhost:{}\"\n", port));
+    }
+    traefik_config.push_str("  middlewares:\n");
+    traefik_config.push_str("    redirect:\n");
+    traefik_config.push_str("      redirectScheme:\n");
+    traefik_config.push_str("        scheme: https\n");
+
+    Ok(HttpResponse::Ok().body(traefik_config))
+}
