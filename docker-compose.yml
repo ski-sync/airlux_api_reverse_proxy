@@ -35,6 +35,8 @@ services:
       - "traefik.http.services.traefik.loadbalancer.server.port=8080"
       - "traefik.http.routers.traefik.tls.certresolver=myresolver"
       - "traefik.http.routers.traefik.tls=true"
+      - "traefik.http.middlewares.test-redirectscheme.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.test-redirectscheme.redirectscheme.permanent=true"
 
   api:
     image: code0ex/api_reverse_proxy:latest
@@ -59,6 +61,8 @@ services:
       - "traefik.http.services.api.loadbalancer.server.port=8081"
       - "traefik.http.routers.api.tls.certresolver=myresolver"
       - "traefik.http.routers.api.tls=true"
+      - "traefik.http.middlewares.test-redirectscheme.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.test-redirectscheme.redirectscheme.permanent=true"
 
 networks:
   api:
