@@ -12,23 +12,6 @@ use actix_web::{
 use db::{DatabaseConnection, Pool};
 use diesel::r2d2::ConnectionManager;
 
-/// Helps with changing the database engine without much edits.
-
-// fn get_used_ports() -> Vec<u32> {
-//     // open file and read used ports
-//     let data = fs::File::open("used_ports.json").unwrap();
-//     let used_ports: Vec<u32> = serde_json::from_reader(data).unwrap();
-//     used_ports
-// }
-
-// fn merge_ports(ports: Vec<u32>, used_ports: Vec<u32>) -> Vec<u32> {
-//     let mut merged_ports = used_ports;
-//     for port in ports {
-//         merged_ports.push(port);
-//     }
-//     merged_ports
-// }
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     println!("Starting server at http://0.0.0.0:8081 ");
