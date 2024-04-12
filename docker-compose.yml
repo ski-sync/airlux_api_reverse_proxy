@@ -1,42 +1,33 @@
 version: "3.8"
 services:
-  traefik:
-    image: "traefik:v3.0"
-    container_name: "traefik"
-    hostname: "traefik"
-    restart: "always"
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--providers.docker.exposedbydefault=false"
-      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
-      ## Uncomment the following line to use the staging server
-      #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
-      ## Uncomment the following line to use the production server
-      - "--certificatesresolvers.myresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
-      - "--certificatesresolvers.myresolver.acme.email=louis.sasse@protonmail.com"
-      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
-
+  ssh:
+    image: code0ex/ssh_reverse_proxy:latest
+    container_name: ssh_reverse_proxy
+    hostname: ssh_reverse_proxy
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: ssh_reverse_proxy
+      platforms:
+        - linux/arm64
+        - linux/amd64
+    networks:
+      - api
     ports:
-      - "80:80"
-      - "443:443"
+      - "2222:22"
+
+  db:
+    image: postgres:13
+    container_name: db
+    hostname: db
+    restart: always
+    env_file:
+      - .env
     networks:
       - api
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./letsencrypt:/letsencrypt
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=Host(`traefik.proxy.ski-sync.com`)"
-      - "traefik.http.routers.traefik.entrypoints=websecure"
-      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
-      - "traefik.http.routers.traefik.tls.certresolver=myresolver"
-      - "traefik.http.routers.traefik.tls=true"
-      - "traefik.http.middlewares.test-redirectscheme.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.test-redirectscheme.redirectscheme.permanent=true"
+      - db-data:/var/lib/postgresql/data
 
   api:
     image: code0ex/api_reverse_proxy:latest
@@ -63,6 +54,49 @@ services:
       - "traefik.http.routers.api.tls=true"
       - "traefik.http.middlewares.test-redirectscheme.redirectscheme.scheme=https"
       - "traefik.http.middlewares.test-redirectscheme.redirectscheme.permanent=true"
+    depends_on:
+      - ssh
+
+  traefik:
+    image: "traefik:v3.0"
+    container_name: "traefik"
+    hostname: "traefik"
+    restart: "always"
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--providers.docker.exposedbydefault=false"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--providers.http.endpoint=https://api.proxy.ski-sync.com/api/traefik"
+      - "--providers.http.pollInterval=60s"
+      ## Uncomment the following line to use the staging server
+      #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      ## Uncomment the following line to use the production server
+      - "--certificatesresolvers.myresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myresolver.acme.email=louis.sasse@protonmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - api
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./letsencrypt:/letsencrypt
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.proxy.ski-sync.com`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+      - "traefik.http.routers.traefik.tls.certresolver=myresolver"
+      - "traefik.http.routers.traefik.tls=true"
+      - "traefik.http.middlewares.test-redirectscheme.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.test-redirectscheme.redirectscheme.permanent=true"
+    depends_on:
+      - api
 
 networks:
   api:
