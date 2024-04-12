@@ -137,7 +137,7 @@ pub async fn get_traefik(pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
         traefik_config.push_str(&format!("    box-{}:\n", port));
         traefik_config.push_str("      loadBalancer:\n");
         traefik_config.push_str("        servers:\n");
-        traefik_config.push_str(&format!("          - url: \"http://localhost:{}\"\n", port));
+        traefik_config.push_str(&format!("          - url: \"ssh:{}\"\n", port));
     }
     traefik_config.push_str("  middlewares:\n");
     traefik_config.push_str("    redirect:\n");
