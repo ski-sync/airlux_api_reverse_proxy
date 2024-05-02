@@ -11,6 +11,7 @@ CMD ["diesel", "migration", "run"]
 
 FROM debian:12.0-slim as runtime
 WORKDIR /app
+RUN apt-get update && apt-get install -y libpq5
 COPY --from=base /app/target/release/api /app
 EXPOSE 8081
 ENTRYPOINT ["./api"]

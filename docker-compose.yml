@@ -32,10 +32,9 @@ services:
       - db-data:/var/lib/postgresql/data
 
   db_push:
-    image: code0ex/api_reverse_proxy:db_push-latest
+    image: code0ex/db_push_reverse_proxy:latest
     container_name: db_push
     hostname: db_push
-    restart: always
     build:
       context: .
       dockerfile: Dockerfile
