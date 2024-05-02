@@ -31,6 +31,25 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
 
+  db_push:
+    image: code0ex/api_reverse_proxy:db_push-latest
+    container_name: db_push
+    hostname: db_push
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: db_push
+      platforms:
+        - linux/arm64
+        - linux/amd64
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    networks:
+      - api
+    depends_on:
+      - db
+
   api:
     image: code0ex/api_reverse_proxy:latest
     container_name: api
@@ -43,8 +62,8 @@ services:
       platforms:
         - linux/arm64
         - linux/amd64
-    env_file:
-      - .env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     networks:
       - api
     labels:
