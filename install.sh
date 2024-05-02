@@ -1,19 +1,31 @@
-# install app from scratch for debian
-!#/bin/bash
+#!/bin/bash
 
-$version = "feature/11-implement-traefik-configuration-auto-update"
+version="feature/11-implement-traefik-configuration-auto-update"
 
-# install docker
-if ! [ -x "$(command -v docker)" ]; then
-  # install docker
-  echo "docker is not installed, installing docker"
+# Check if Docker is installed
+if ! command -v docker &> /dev/null; then
+  echo "Docker is not installed, installing Docker..."
+  # Assuming the use of a Debian-based system
+  sudo apt-get update
+  sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  sudo apt-get update
+  sudo apt-get install -y docker-ce
 fi
 
-# download docker-compose
-curl -L "https://raw.githubusercontent.com/ski-sync/api_reverse_proxy/{{$version}}/docker-compose.yml" -o docker-compose.yml
+# Check if Docker Compose is installed
+if ! command -v docker-compose &> /dev/null; then
+  echo "Docker Compose is not installed, installing Docker Compose..."
+  sudo curl -L "https://github.com/docker/compose/releases/download/v2.4.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  sudo chmod +x /usr/local/bin/docker-compose
+fi
 
-# update image version
+# Download docker-compose.yml
+curl -L "https://raw.githubusercontent.com/ski-sync/api_reverse_proxy/$version/docker-compose.yml" -o docker-compose.yml
+
+# Update image version
 docker compose pull
 
-# start the app
+# Start the app
 docker compose up -d
