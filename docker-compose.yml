@@ -22,8 +22,10 @@ services:
     container_name: db
     hostname: db
     restart: always
-    env_file:
-      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     networks:
       - api
     volumes:
@@ -101,3 +103,7 @@ services:
 networks:
   api:
     driver: bridge
+
+volumes:
+  db-data:
+    driver: local

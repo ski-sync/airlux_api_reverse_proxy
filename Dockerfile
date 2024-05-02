@@ -1,16 +1,14 @@
 FROM rust:1.75.0 as base
-ARG DATABASE_URL=app.db
+ARG DATABASE_URL=postgresql://postgres:mysecretpassword@db:5432
 WORKDIR /app
 ADD . /app
 RUN cargo install diesel_cli --no-default-features --features postgres
-RUN diesel migration run
 RUN cargo build --release --bin api
 
 FROM debian:12.0-slim as runtime
-ARG DATABASE_URL=app.db
+ARG DATABASE_URL=postgresql://postgres:mysecretpassword@db:5432
 WORKDIR /app
 COPY --from=base /app/target/release/api /app
-COPY --from=base /app/$DATABASE_URL /app
 EXPOSE 8081
 ENTRYPOINT ["./api"]
 
