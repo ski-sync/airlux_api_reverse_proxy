@@ -30,6 +30,11 @@ services:
       - api
     volumes:
       - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   db_push:
     image: code0ex/db_push_reverse_proxy:latest
@@ -68,7 +73,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api.rule=Host(`api.proxy.ski-sync.com`)"
-      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.entrypoints=websecure,web"
       - "traefik.http.services.api.loadbalancer.server.port=8081"
       - "traefik.http.routers.api.tls.certresolver=myresolver"
       - "traefik.http.routers.api.tls=true"
@@ -76,6 +81,8 @@ services:
       - "traefik.http.middlewares.test-redirectscheme.redirectscheme.permanent=true"
     depends_on:
       - ssh
+      - db_push
+      - db
 
   traefik:
     image: "traefik:v3.0"
@@ -91,13 +98,15 @@ services:
       - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
       - "--providers.http.endpoint=https://api.proxy.ski-sync.com/api/traefik"
-      - "--providers.http.pollInterval=60s"
+      - "--providers.http.pollInterval=5s"
+      - "--providers.http.pollTimeout=30s"
       ## Uncomment the following line to use the staging server
       #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
       ## Uncomment the following line to use the production server
       - "--certificatesresolvers.myresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
       - "--certificatesresolvers.myresolver.acme.email=louis.sasse@protonmail.com"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--log.level=DEBUG"
     ports:
       - "80:80"
       - "443:443"
@@ -109,7 +118,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik.rule=Host(`traefik.proxy.ski-sync.com`)"
-      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.entrypoints=websecure,web"
       - "traefik.http.services.traefik.loadbalancer.server.port=8080"
       - "traefik.http.routers.traefik.tls.certresolver=myresolver"
       - "traefik.http.routers.traefik.tls=true"

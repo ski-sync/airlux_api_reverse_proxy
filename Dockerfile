@@ -1,7 +1,7 @@
 FROM rust:1.75.0 as base
 WORKDIR /app
-ADD . /app
 RUN cargo install diesel_cli --no-default-features --features postgres
+ADD . /app
 RUN cargo build --release --bin api
 
 FROM base as db_push
@@ -24,6 +24,7 @@ RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/
 RUN sed -i 's/#PermitEmptyPasswords no/PermitEmptyPasswords yes/' /etc/ssh/sshd_config
 RUN sed -i 's/#PermitUserEnvironment no/PermitUserEnvironment yes/' /etc/ssh/sshd_config
 RUN sed -i 's/#PermitTunnel no/PermitTunnel yes/' /etc/ssh/sshd_config
+RUN sed -i 's/#GatewayPorts no/GatewayPorts yes/' /etc/ssh/sshd_config
 RUN mkdir -p /run/sshd
 
 EXPOSE 22
