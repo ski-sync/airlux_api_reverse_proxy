@@ -2,14 +2,14 @@ use super::schema::mac_addresses;
 use super::schema::ports;
 
 #[derive(Queryable, Insertable)]
-#[table_name = "mac_addresses"]
-pub struct Mac_addresses {
+#[diesel(table_name = mac_addresses)]
+pub struct MacAddresses {
     pub address_mac: String,
     pub ssh_key: String,
 }
 
 #[derive(Queryable, Insertable)]
-#[table_name = "ports"]
+#[diesel(table_name = ports)]
 pub struct Ports {
     pub mac_id: i32,
     pub port: i32,

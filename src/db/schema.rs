@@ -2,7 +2,7 @@
 
 diesel::table! {
     mac_addresses (id) {
-        id -> Nullable<Integer>,
+        id -> Int4,
         ssh_key -> Text,
         address_mac -> Text,
     }
@@ -10,9 +10,9 @@ diesel::table! {
 
 diesel::table! {
     ports (id) {
-        id -> Nullable<Integer>,
-        mac_id -> Integer,
-        port -> Integer,
+        id -> Int4,
+        mac_id -> Int4,
+        port -> Int4,
         protocol -> Text,
         created -> Bool,
     }
