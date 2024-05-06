@@ -17,15 +17,15 @@
 -- );
 
 CREATE TABLE IF NOT EXISTS mac_addresses (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     ssh_key TEXT NOT NULL,
     address_mac TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS ports (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     mac_id INTEGER NOT NULL,
-    port unsigned INTEGER NOT NULL,
+    port INTEGER NOT NULL UNIQUE,
     protocol TEXT NOT NULL,
     created BOOLEAN NOT NULL,
     FOREIGN KEY(mac_id) REFERENCES mac_addresses(id),
