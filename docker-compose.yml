@@ -43,7 +43,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: db_push
+      target: db_push_reverse_proxy
       platforms:
         - linux/arm64
         - linux/amd64
@@ -62,7 +62,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: runtime
+      target: api_reverse_proxy
       platforms:
         - linux/arm64
         - linux/amd64

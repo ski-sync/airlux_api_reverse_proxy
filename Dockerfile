@@ -1,21 +1,31 @@
-FROM rust:1.75.0 as base
-WORKDIR /app
-RUN cargo install diesel_cli --no-default-features --features postgres
-ADD . /app
+FROM rust:1.75.0 as build-api_reverse_proxy
+RUN USER=root cargo new --bin api
+WORKDIR /api
+COPY Cargo.toml Cargo.lock ./
+RUN cargo build --release --bin api
+RUN rm src/*.rs
+COPY src ./src
+RUN rm ./target/release/deps/api*
 RUN cargo build --release --bin api
 
-FROM base as db_push
-ARG DATABASE_URL=postgresql://postgres:mysecretpassword@db:5432
-WORKDIR /app
+# api_reverse_proxy image
+FROM debian:12.0-slim as api_reverse_proxy
+COPY --from=build-api_reverse_proxy /api/target/release/api /usr/local/bin/api
+CMD ["/usr/local/bin/api"]
+
+# Use a lighter Rust image for building
+FROM rust:1.75.0 as build-db_push_reverse_proxy
+RUN cargo install diesel_cli --no-default-features --features postgres
+
+# Use a minimal base image for the runtime
+FROM debian:buster-slim as db_push_reverse_proxy
+COPY --from=build-db_push_reverse_proxy /usr/local/cargo/bin/diesel /usr/local/bin/
+WORKDIR /diesel
+COPY diesel.toml ./
+COPY migrations ./migrations
 CMD ["diesel", "migration", "run"]
 
-FROM debian:12.0-slim as runtime
-WORKDIR /app
-RUN apt-get update && apt-get install -y libpq5
-COPY --from=base /app/target/release/api /app
-EXPOSE 8081
-ENTRYPOINT ["./api"]
-
+# ssh_reverse_proxy image
 FROM debian:12 as ssh_reverse_proxy
 RUN apt-get update && apt-get install -y openssh-server
 RUN echo 'root:root' | chpasswd
