@@ -27,6 +27,7 @@ ReverseSSH-API provides a simple RESTful API with the following
 
 - `GET api/ports`: Get a list of unused ports for reverse SSH connections.
 - `GET api/register`: Register a list of ports for a user.
+- `GET api/traefik`: get dynamic conf for traefik.
 
 ## License
 
