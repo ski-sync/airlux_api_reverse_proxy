@@ -51,6 +51,7 @@ struct ResponseRegister {
 #[derive(serde::Deserialize, Debug, Clone)]
 pub enum Protocol {
     Tcp,
+    Udp,
     Http,
 }
 
@@ -58,6 +59,7 @@ impl Display for Protocol {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Protocol::Tcp => write!(f, "Tcp"),
+            Protocol::Udp => write!(f, "Udp"),
             Protocol::Http => write!(f, "Http"),
         }
     }
