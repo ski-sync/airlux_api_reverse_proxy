@@ -5,10 +5,23 @@ pub struct Register {
     pub ssh_key: String,
 }
 
+// this function save ssh_key in authorized_keys file
+pub fn save_ssh_key(ssh_key: String) {
+    use std::fs::OpenOptions;
+    use std::io::Write;
+
+    let mut file = OpenOptions::new()
+        .append(true)
+        .open("/root/.ssh/authorized_keys")
+        .unwrap();
+
+    file.write_all(ssh_key.as_bytes()).unwrap();
+}
+
 #[post("/register")]
 async fn register(register: actix_web::web::Json<Register>) -> actix_web::HttpResponse {
-    println!("{:?}", register);
-    actix_web::HttpResponse::Ok().finish()
+    save_ssh_key(register.ssh_key.clone());
+    actix_web::HttpResponse::Ok().json("OK")
 }
 
 #[actix_web::main]
