@@ -2,12 +2,14 @@
 FROM rust:1.75.0 as build-api_reverse_proxy
 RUN USER=root cargo new --bin api
 WORKDIR /api
+RUN mkdir -p src/api && mv src/main.rs src/api/main.rs
 COPY Cargo.toml Cargo.lock ./
 RUN cargo build --release --bin api
-RUN rm src/*.rs
+RUN rm -rf src/*
 COPY src ./src
 RUN rm ./target/release/deps/api*
 RUN cargo build --release --bin api
+RUN cargo build --release --bin authorize_key
 
 # Build stage: Install build dependencies and build diesel_cli
 FROM rust:1.75.0-slim-buster as build-db_push_reverse_proxy
@@ -38,8 +40,6 @@ FROM debian:12 as ssh_reverse_proxy
 RUN apt-get update && apt-get install -y openssh-server
 RUN echo 'root:root' | chpasswd
 RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
-RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
-RUN sed -i 's/#PermitEmptyPasswords no/PermitEmptyPasswords yes/' /etc/ssh/sshd_config
 RUN sed -i 's/#PermitUserEnvironment no/PermitUserEnvironment yes/' /etc/ssh/sshd_config
 RUN sed -i 's/#PermitTunnel no/PermitTunnel yes/' /etc/ssh/sshd_config
 RUN sed -i 's/#GatewayPorts no/GatewayPorts yes/' /etc/ssh/sshd_config
