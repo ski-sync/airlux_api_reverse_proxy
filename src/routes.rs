@@ -85,45 +85,54 @@ pub async fn get_ports(pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
     Ok(HttpResponse::Ok().json(used_ports))
 }
 
-/// Generates the YAML configuration for Traefik based on the assigned ports.
+/// Generates the YAML configuration for Traefik based on the ports and devices from the database.
 ///
 /// # Arguments
 /// * `pool` - A database connection pool.
+///
+/// # Returns
+///
+/// * A string containing the YAML configuration for Traefik.
+///
 pub async fn generate_traefik_config(pool: web::Data<Pool>) -> Result<String, Error> {
-    let used_ports = match get_used_ports(pool.clone()).map_err(|e| {
-        eprintln!("Error retrieving used ports: {}", e);
-        HttpResponse::InternalServerError().body("Failed to retrieve port data")
-    }) {
-        Ok(used_ports) => used_ports,
+    // Fetch the dynamic configuration
+    let dynamic_config = match get_traefik_dynamic_config(pool).await {
+        Ok(config) => config,
         Err(_) => {
-            return Ok(String::from(
-                "http:\n  routers:\n  services:\n  middlewares:\n",
-            ))
+            return Ok("http:\n  routers:\n  services:\n  middlewares:\n".to_string());
         }
     };
 
     let mut traefik_config = String::from("http:\n  routers:\n");
-    for port in &used_ports {
-        let domain = format!("box-{}.proxy.ski-sync.com", port);
-        let router_block = format!(
-            "    box-{port}:\n      rule: \"Host(`{domain}`)\"\n      service: box-{port}\n      entryPoints:\n        - websecure\n      tls:\n        certResolver: myresolver\n",
-            port = port,
-            domain = domain
-        );
-        traefik_config.push_str(&router_block);
+    // Loop through devices and their ports to configure routers
+    for device in &dynamic_config.devices {
+        for port in &device.network_ports {
+            let domain = format!("{}.proxy.ski-sync.com", device.mac_address);
+            let router_block = format!(
+                "    router-{port}:\n      rule: \"Host(`{domain}`)\"\n      service: service-{port}\n      entryPoints:\n        - websecure\n      tls:\n        certResolver: myresolver\n",
+                port = port.port,
+                domain = domain
+            );
+            traefik_config.push_str(&router_block);
+        }
     }
 
     traefik_config.push_str("  services:\n");
-    for port in &used_ports {
-        let service_block = format!(
-            "    box-{port}:\n      loadBalancer:\n        servers:\n          - url: \"http://ssh_reverse_proxy:{port}\"\n",
-            port = port
-        );
-        traefik_config.push_str(&service_block);
+    // Configure services based on ports
+    for device in &dynamic_config.devices {
+        for port in &device.network_ports {
+            let service_block = format!(
+                "    service-{port}:\n      loadBalancer:\n        servers:\n          - url: \"http://ssh_reverse_proxy:{port}\"\n",
+                port = port.port
+            );
+            traefik_config.push_str(&service_block);
+        }
     }
 
+    // Add fixed middleware configuration
     traefik_config
         .push_str("  middlewares:\n    redirect:\n      redirectScheme:\n        scheme: https\n");
+
     Ok(traefik_config)
 }
 
