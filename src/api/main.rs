@@ -17,7 +17,7 @@ async fn main() -> std::io::Result<()> {
     println!("Starting server at http://0.0.0.0:8081 ");
     dotenv::dotenv().ok();
 
-    let database_url = std::env::var("DATABASE_URL").unwrap_or("app.db".to_string());
+    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let database_pool = Pool::builder()
         .build(ConnectionManager::<DatabaseConnection>::new(database_url))
         .unwrap();
