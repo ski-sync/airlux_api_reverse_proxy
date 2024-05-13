@@ -36,13 +36,20 @@ COPY migrations ./migrations
 CMD ["diesel", "migration", "run"]
 
 # ssh_reverse_proxy image
-FROM debian:12 as ssh_reverse_proxy
-RUN apt-get update && apt-get install -y openssh-server
+FROM debian:12.0-slim as ssh_reverse_proxy
+RUN apt-get update && apt-get install -y openssh-server libpq-dev supervisor && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 RUN echo 'root:root' | chpasswd
 RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 RUN sed -i 's/#PermitUserEnvironment no/PermitUserEnvironment yes/' /etc/ssh/sshd_config
 RUN sed -i 's/#PermitTunnel no/PermitTunnel yes/' /etc/ssh/sshd_config
 RUN sed -i 's/#GatewayPorts no/GatewayPorts yes/' /etc/ssh/sshd_config
+
 RUN mkdir -p /run/sshd
+RUN mkdir -p /var/log/supervisor
+
+COPY --from=build-api_reverse_proxy /api/target/release/authorize_key /usr/local/bin/authorize_key
+COPY services/authorize_key.conf /etc/supervisor/conf.d/supervisord.conf
+
 EXPOSE 22
-CMD ["/usr/sbin/sshd", "-D"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
