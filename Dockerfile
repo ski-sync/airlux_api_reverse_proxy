@@ -39,7 +39,6 @@ CMD ["diesel", "migration", "run"]
 FROM debian:12.0-slim as ssh_reverse_proxy
 RUN apt-get update && apt-get install -y openssh-server libpq-dev supervisor && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN echo 'root:root' | chpasswd
 RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 RUN sed -i 's/#PermitUserEnvironment no/PermitUserEnvironment yes/' /etc/ssh/sshd_config
 RUN sed -i 's/#PermitTunnel no/PermitTunnel yes/' /etc/ssh/sshd_config
