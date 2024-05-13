@@ -1,6 +1,9 @@
 pub mod models;
 pub mod schema;
 
+use std::collections::BTreeMap;
+use std::str::FromStr;
+
 use crate::types::{DeviceConfig, NetworkPortConfig, Port, Protocol, TraefikDynamicConfig};
 use actix_web::web;
 use diesel::OptionalExtension;
@@ -9,7 +12,6 @@ use diesel::{
     result::Error,
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
-
 
 pub type DatabaseConnection = PgConnection;
 pub type Pool = r2d2::Pool<ConnectionManager<DatabaseConnection>>;
@@ -91,4 +93,43 @@ pub fn insert_ports(
             .execute(&mut conn)?;
     }
     Ok(())
+}
+
+pub async fn get_traefik_dynamic_config(
+    pool: web::Data<Pool>,
+) -> Result<TraefikDynamicConfig, Error> {
+    let mut conn = pool.get().map_err(|_| Error::NotFound)?;
+
+    let results = schema::mac_addresses::table
+        .inner_join(schema::ports::table)
+        .select((
+            schema::mac_addresses::address_mac,
+            schema::ports::port,
+            schema::ports::protocol,
+        ))
+        .order(schema::mac_addresses::address_mac::asc(
+            schema::mac_addresses::address_mac,
+        ))
+        .load::<(String, i32, String)>(&mut conn)?;
+
+    let mut device_map: BTreeMap<String, Vec<NetworkPortConfig>> = BTreeMap::new();
+    for (mac, port, prot) in results {
+        let protocol = Protocol::from_str(&prot).map_err(|_| Error::NotFound)?;
+        device_map.entry(mac).or_default().push(NetworkPortConfig {
+            port: port as u32,
+            protocol,
+        });
+    }
+
+    let device_configs = device_map
+        .into_iter()
+        .map(|(mac, ports)| DeviceConfig {
+            mac_address: mac,
+            network_ports: ports,
+        })
+        .collect();
+
+    Ok(TraefikDynamicConfig {
+        devices: device_configs,
+    })
 }
