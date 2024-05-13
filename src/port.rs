@@ -53,6 +53,7 @@ pub enum Protocol {
     Tcp,
     Udp,
     Http,
+    Https,
 }
 
 impl Display for Protocol {
@@ -61,6 +62,7 @@ impl Display for Protocol {
             Protocol::Tcp => write!(f, "Tcp"),
             Protocol::Udp => write!(f, "Udp"),
             Protocol::Http => write!(f, "Http"),
+            Protocol::Https => write!(f, "Https"),
         }
     }
 }
