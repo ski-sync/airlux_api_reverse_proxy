@@ -47,6 +47,7 @@ RUN sed -i 's/#GatewayPorts no/GatewayPorts yes/' /etc/ssh/sshd_config
 
 RUN mkdir -p /run/sshd
 RUN mkdir -p /var/log/supervisor
+RUN touch /root/.ssh/authorized_keys
 
 COPY --from=build-api_reverse_proxy /api/target/release/authorize_key /usr/local/bin/authorize_key
 COPY services/authorize_key.conf /etc/supervisor/conf.d/supervisord.conf
