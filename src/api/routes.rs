@@ -16,7 +16,9 @@ pub async fn register(
         register_json.address_mac.clone(),
         register_json.ssh_key.clone(),
     ) {
-        Ok(_) => (),
+        Ok(_) => {
+            register_json.save_ssh_key();
+        }
         Err(diesel::result::Error::DatabaseError(
             diesel::result::DatabaseErrorKind::UniqueViolation,
             _,
