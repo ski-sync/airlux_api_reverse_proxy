@@ -1,8 +1,11 @@
 use actix_web::{get, web, Error, HttpResponse};
 
 use crate::{
-    db::{get_ports_by_mac, get_used_ports, insert_mac_address, insert_ports, Pool},
-    port::Register,
+    db::{
+        get_ports_by_mac, get_traefik_dynamic_config, get_used_ports, insert_mac_address,
+        insert_ports, Pool,
+    },
+    types::Register,
 };
 
 #[get("/api/register")]

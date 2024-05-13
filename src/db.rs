@@ -1,6 +1,7 @@
 pub mod models;
 pub mod schema;
 
+use crate::types::{DeviceConfig, NetworkPortConfig, Port, Protocol, TraefikDynamicConfig};
 use actix_web::web;
 use diesel::OptionalExtension;
 use diesel::{
@@ -9,7 +10,6 @@ use diesel::{
     ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl,
 };
 
-use crate::port::Port;
 
 pub type DatabaseConnection = PgConnection;
 pub type Pool = r2d2::Pool<ConnectionManager<DatabaseConnection>>;

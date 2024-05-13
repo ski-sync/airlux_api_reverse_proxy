@@ -2,8 +2,8 @@
 extern crate diesel;
 
 pub mod db;
-pub mod port;
 pub mod routes;
+pub mod types;
 
 use actix_web::{
     web::{self},
