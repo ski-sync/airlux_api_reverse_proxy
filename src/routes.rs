@@ -89,7 +89,7 @@ pub async fn get_ports(pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
 ///
 /// # Arguments
 /// * `pool` - A database connection pool.
-async fn generate_traefik_config(pool: web::Data<Pool>) -> Result<String, Error> {
+pub async fn generate_traefik_config(pool: web::Data<Pool>) -> Result<String, Error> {
     let used_ports = match get_used_ports(pool.clone()).map_err(|e| {
         eprintln!("Error retrieving used ports: {}", e);
         HttpResponse::InternalServerError().body("Failed to retrieve port data")
