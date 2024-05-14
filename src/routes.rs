@@ -167,6 +167,37 @@ pub async fn generate_traefik_config(pool: web::Data<Pool>) -> Result<String, Er
         }
     }
 
+    // udp config for each device
+    traefik_config.push_str("  udp:\n  routers:\n");
+    for device in &dynamic_config.devices {
+        for port in &device.network_ports {
+            if port.protocol == Protocol::Udp {
+                let domain = format!("{}.{}.proxy.ski-sync.com", port.port, device.mac_address);
+                let router_block = format!(
+                    "    router-{port}:\n      rule: \"HostSNI(`{domain}`)\"\n      service: service-{port}\n      entryPoints:\n        - websecure\n",
+                    port = port.port,
+                    domain = domain,
+                );
+                traefik_config.push_str(&router_block);
+            }
+        }
+    }
+
+    // udp service config for each device
+    traefik_config.push_str("  services:\n");
+    for device in &dynamic_config.devices {
+        for port in &device.network_ports {
+            if port.protocol == Protocol::Udp {
+                let service_block = format!(
+                    "    service-{port}:\n      loadBalancer:\n        servers:\n          - address: \"ssh_reverse_proxy:{port}\"\n            tls: true\n",
+                    port = port.port
+                );
+                traefik_config.push_str(&service_block);
+            }
+        }
+    }
+
+    // Return the generated configuration
     Ok(traefik_config)
 }
 
