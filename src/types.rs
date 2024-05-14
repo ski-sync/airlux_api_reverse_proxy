@@ -85,7 +85,7 @@ pub struct Port {
 ///
 /// Protocol enum
 ///
-#[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
+#[derive(serde::Deserialize, serde::Serialize, Debug, Clone, PartialEq, Eq)]
 pub enum Protocol {
     Tcp,
     Udp,

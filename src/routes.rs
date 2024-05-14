@@ -5,7 +5,7 @@ use crate::{
         get_ports_by_mac, get_traefik_dynamic_config, get_used_ports, insert_mac_address,
         insert_ports, Pool,
     },
-    types::Register,
+    types::{Protocol, Register},
 };
 
 #[get("/api/register")]
@@ -99,39 +99,73 @@ pub async fn generate_traefik_config(pool: web::Data<Pool>) -> Result<String, Er
     let dynamic_config = match get_traefik_dynamic_config(pool).await {
         Ok(config) => config,
         Err(_) => {
-            return Ok("http:\n  routers:\n  services:\n  middlewares:\n".to_string());
+            return Ok("http:\n  routers:\n  services:\n  middlewares:\ntcp:".to_string());
         }
     };
 
+    // http config for each device
     let mut traefik_config = String::from("http:\n  routers:\n");
-    // Loop through devices and their ports to configure routers
     for device in &dynamic_config.devices {
         for port in &device.network_ports {
-            let domain = format!("{}.proxy.ski-sync.com", device.mac_address);
-            let router_block = format!(
-                "    router-{port}:\n      rule: \"Host(`{domain}`)\"\n      service: service-{port}\n      entryPoints:\n        - websecure\n      tls:\n        certResolver: myresolver\n",
-                port = port.port,
-                domain = domain
-            );
-            traefik_config.push_str(&router_block);
+            if port.protocol == Protocol::Http || port.protocol == Protocol::Https {
+                let domain = format!("{}.{}.proxy.ski-sync.com", port.port, device.mac_address);
+                let router_block = format!(
+                    "    router-{port}:\n      rule: \"Host(`{domain}`)\"\n      service: service-{port}\n      entryPoints:\n        - websecure\n      tls:\n        certResolver: myresolver\n",
+                    port = port.port,
+                    domain = domain
+                );
+                traefik_config.push_str(&router_block);
+            }
         }
     }
 
+    // http service config for each device
     traefik_config.push_str("  services:\n");
-    // Configure services based on ports
     for device in &dynamic_config.devices {
         for port in &device.network_ports {
-            let service_block = format!(
-                "    service-{port}:\n      loadBalancer:\n        servers:\n          - url: \"http://ssh_reverse_proxy:{port}\"\n",
-                port = port.port
-            );
-            traefik_config.push_str(&service_block);
+            if port.protocol == Protocol::Http || port.protocol == Protocol::Https {
+                let service_block = format!(
+                    "    service-{port}:\n      loadBalancer:\n        servers:\n          - url: \"https://ssh_reverse_proxy:{port}\"\n",
+                    port = port.port
+                );
+                traefik_config.push_str(&service_block);
+            }
         }
     }
 
     // Add fixed middleware configuration
     traefik_config
         .push_str("  middlewares:\n    redirect:\n      redirectScheme:\n        scheme: https\n");
+
+    // tcp config for each device
+    traefik_config.push_str("tcp:\n  routers:\n");
+    for device in &dynamic_config.devices {
+        for port in &device.network_ports {
+            if port.protocol == Protocol::Tcp {
+                let domain = format!("{}.{}.proxy.ski-sync.com", port.port, device.mac_address);
+                let router_block = format!(
+                    "    router-{port}:\n      rule: \"HostSNI(`{domain}`)\"\n      service: service-{port}\n      entryPoints:\n        - websecure\n",
+                    port = port.port,
+                    domain = domain,
+                );
+                traefik_config.push_str(&router_block);
+            }
+        }
+    }
+
+    // tcp service config for each device
+    traefik_config.push_str("  services:\n");
+    for device in &dynamic_config.devices {
+        for port in &device.network_ports {
+            if port.protocol == Protocol::Tcp {
+                let service_block = format!(
+                    "    service-{port}:\n      loadBalancer:\n        servers:\n          - address: \"ssh_reverse_proxy:{port}\"\n            tls: true\n",
+                    port = port.port
+                );
+                traefik_config.push_str(&service_block);
+            }
+        }
+    }
 
     Ok(traefik_config)
 }
