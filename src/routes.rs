@@ -104,7 +104,7 @@ pub async fn generate_traefik_config(pool: web::Data<Pool>) -> ApiResult<String>
     let dynamic_config = match get_traefik_dynamic_config(pool).await {
         Ok(config) => config,
         Err(_) => {
-            return Ok("http:\n  routers:\n  services:\n  middlewares:\n:".to_string());
+            return Ok("http:\n  routers:\n  services:\n  middlewares:\n".to_string());
         }
     };
 
