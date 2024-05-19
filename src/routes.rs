@@ -4,8 +4,7 @@ use crate::{
     db::{
         get_ports_by_mac, get_traefik_dynamic_config, get_used_ports, insert_mac_address,
         insert_ports, Pool,
-    },
-    types::{Protocol, Register},
+    }, errors:: ApiResult, types::{Protocol, Register}
 };
 
 #[get("/api/register")]
@@ -94,12 +93,12 @@ pub async fn get_ports(pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
 ///
 /// * A string containing the YAML configuration for Traefik.
 ///
-pub async fn generate_traefik_config(pool: web::Data<Pool>) -> Result<String, Error> {
+pub async fn generate_traefik_config(pool: web::Data<Pool>) -> ApiResult<String> {
     // Fetch the dynamic configuration
     let dynamic_config = match get_traefik_dynamic_config(pool).await {
         Ok(config) => config,
         Err(_) => {
-            return Ok("http:\n  routers:\n  services:\n  middlewares:\ntcp:".to_string());
+            return Ok("http:\n  routers:\n  services:\n  middlewares:\n:".to_string());
         }
     };
 
@@ -168,7 +167,7 @@ pub async fn generate_traefik_config(pool: web::Data<Pool>) -> Result<String, Er
     }
 
     // udp config for each device
-    traefik_config.push_str("  udp:\n  routers:\n");
+    traefik_config.push_str("udp:\n  routers:\n");
     for device in &dynamic_config.devices {
         for port in &device.network_ports {
             if port.protocol == Protocol::Udp {
@@ -203,9 +202,7 @@ pub async fn generate_traefik_config(pool: web::Data<Pool>) -> Result<String, Er
 
 /// Endpoint for retrieving Traefik configuration.
 #[get("/api/traefik")]
-pub async fn get_traefik_config(pool: web::Data<Pool>) -> HttpResponse {
-    match generate_traefik_config(pool).await {
-        Ok(config) => HttpResponse::Ok().content_type("text/yaml").body(config),
-        Err(_) => HttpResponse::InternalServerError().finish(),
-    }
+pub async fn get_traefik_config(pool: web::Data<Pool>) -> ApiResult<HttpResponse> {
+    let config = generate_traefik_config(pool).await?;
+    Ok(HttpResponse::Ok().content_type("text/yaml").body(config))
 }

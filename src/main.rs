@@ -4,6 +4,7 @@ extern crate diesel;
 pub mod db;
 pub mod routes;
 pub mod types;
+pub mod errors;
 
 use actix_web::{
     web::{self},
