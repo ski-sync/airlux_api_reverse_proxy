@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   ssh:
-    image: code0ex/ssh_reverse_proxy:latest
+    image: code0ex/ssh_reverse_proxy:prod
     container_name: ssh_reverse_proxy
     hostname: ssh_reverse_proxy
     restart: always
@@ -37,7 +37,7 @@ services:
       retries: 5
 
   db_push:
-    image: code0ex/db_push_reverse_proxy:latest
+    image: code0ex/db_push_reverse_proxy:prod
     container_name: db_push
     hostname: db_push
     build:
@@ -55,7 +55,7 @@ services:
       - db
 
   api:
-    image: code0ex/api_reverse_proxy:latest
+    image: code0ex/api_reverse_proxy:prod
     container_name: api
     hostname: api
     restart: always
