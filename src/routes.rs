@@ -4,7 +4,7 @@ use crate::{
     db::{
         get_ports_by_mac, get_traefik_dynamic_config, get_used_ports, insert_mac_address,
         insert_ports, Pool,
-    }, errors:: ApiResult, types::{Protocol, Register}
+    }, errors::{ApiError,  ApiResult}, types::{Protocol, Register}
 };
 
 #[get("/api/register")]
@@ -94,6 +94,12 @@ pub async fn get_ports(pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
 /// * A string containing the YAML configuration for Traefik.
 ///
 pub async fn generate_traefik_config(pool: web::Data<Pool>) -> ApiResult<String> {
+    // env DOMAIN_NAME
+    let domain_name = match std::env::var("DOMAIN_NAME") {
+        Ok(domain_name) => domain_name,
+        Err(_) => return Err(ApiError::InternalServerError("DOMAIN_NAME not set".to_string())),
+    };
+
     // Fetch the dynamic configuration
     let dynamic_config = match get_traefik_dynamic_config(pool).await {
         Ok(config) => config,
@@ -107,7 +113,7 @@ pub async fn generate_traefik_config(pool: web::Data<Pool>) -> ApiResult<String>
     for device in &dynamic_config.devices {
         for port in &device.network_ports {
             if port.protocol == Protocol::Http || port.protocol == Protocol::Https {
-                let domain = format!("{}.{}.proxy.ski-sync.com", port.port, device.mac_address);
+                let domain = format!("{}.{}.{}", port.port, device.mac_address, domain_name);
                 let router_block = format!(
                     "    router-{port}:\n      rule: \"Host(`{domain}`)\"\n      service: service-{port}\n      entryPoints:\n        - websecure\n      tls:\n        certResolver: myresolver\n",
                     port = port.port,
@@ -141,7 +147,7 @@ pub async fn generate_traefik_config(pool: web::Data<Pool>) -> ApiResult<String>
     for device in &dynamic_config.devices {
         for port in &device.network_ports {
             if port.protocol == Protocol::Tcp {
-                let domain = format!("{}.{}.proxy.ski-sync.com", port.port, device.mac_address);
+                let domain = format!("{}.{}.{}", port.port, device.mac_address, domain_name);
                 let router_block = format!(
                     "    router-{port}:\n      rule: \"HostSNI(`{domain}`)\"\n      service: service-{port}\n      entryPoints:\n        - websecure\n",
                     port = port.port,
@@ -171,7 +177,7 @@ pub async fn generate_traefik_config(pool: web::Data<Pool>) -> ApiResult<String>
     for device in &dynamic_config.devices {
         for port in &device.network_ports {
             if port.protocol == Protocol::Udp {
-                let domain = format!("{}.{}.proxy.ski-sync.com", port.port, device.mac_address);
+                let domain = format!("{}.{}.{}", port.port, device.mac_address, domain_name);
                 let router_block = format!(
                     "    router-{port}:\n      rule: \"HostSNI(`{domain}`)\"\n      service: service-{port}\n      entryPoints:\n        - websecure\n",
                     port = port.port,
