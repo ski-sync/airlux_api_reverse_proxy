@@ -9,7 +9,7 @@ on:
   # temporary
   push:
     branches:
-      - "*"
+      - '*'
 
 env:
   IMAGE_NAMES: |
