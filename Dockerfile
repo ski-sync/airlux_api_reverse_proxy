@@ -15,16 +15,16 @@ RUN cargo build --release --bin authorize_key
 FROM rust:1.75.0-slim-buster as build-db_push_reverse_proxy
 RUN apt-get update && \
     apt-get install -y libpq-dev pkg-config && \
-    cargo install diesel_cli --no-default-features --features "postgres"
+    cargo install diesel_cli --no-default-features --features "postgres" --version 2.1.1
 
 # api_reverse_proxy image
-FROM debian:12.0-slim as api_reverse_proxy
+FROM debian:12.5-slim as api_reverse_proxy
 RUN apt-get update && apt-get install -y libpq-dev
 COPY --from=build-api_reverse_proxy /api/target/release/api /usr/local/bin/api
 CMD ["/usr/local/bin/api"]
 
 # db_push_reverse_proxy image
-FROM debian:buster-slim as db_push_reverse_proxy
+FROM debian:12.5-slim as db_push_reverse_proxy
 COPY --from=build-db_push_reverse_proxy /usr/local/cargo/bin/diesel /usr/local/bin/
 RUN apt-get update && \
     apt-get install -y libpq5 && \
@@ -36,7 +36,7 @@ COPY migrations ./migrations
 CMD ["diesel", "migration", "run"]
 
 # ssh_reverse_proxy image
-FROM debian:12.0-slim as ssh_reverse_proxy
+FROM debian:12.5-slim as ssh_reverse_proxy
 RUN apt-get update && apt-get install -y openssh-server libpq-dev supervisor && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
