@@ -5,23 +5,25 @@ edition = "2021"
 
 [[bin]]
 name = "api"
-path = "src/main.rs"
+path = "src/api/main.rs"
 
 
 [[bin]]
 name = "authorize_key"
-path = "authorize_key/main.rs"
+path = "src/authorize_key/main.rs"
 
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 actix-web = "4"
-serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-diesel = { version = "2.1.4", features = ["postgres", "r2d2"] }
 dotenv = "0.15.0"
 anyhow = "1.0.81"
+tokio = { version = "1.0", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+diesel = { version = "2.1.4", features = ["postgres", "r2d2"] }
+reqwest = { version = "0.12.4", features = ["blocking", "json"] }
 
 [package.metadata.default-run]
 binary = "api"

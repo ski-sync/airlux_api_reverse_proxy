@@ -43,7 +43,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: db_push
+      target: db_push_reverse_proxy
       platforms:
         - linux/arm64
         - linux/amd64
@@ -62,12 +62,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: runtime
+      target: api_reverse_proxy
       platforms:
         - linux/arm64
         - linux/amd64
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - AUTHORIZE_KEY_HOST=${AUTHORIZE_KEY_HOST}
+      - AUTHORIZE_KEY_PORT=${AUTHORIZE_KEY_PORT}
     networks:
       - api
     labels:
